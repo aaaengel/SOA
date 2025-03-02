@@ -1,0 +1,79 @@
+specification {
+    element person {
+        style {
+            shape person
+            color green
+        }
+    }
+    element softwareSystem
+    element container
+    element component
+}
+
+model {
+  user = person "Пользователь" "Пользователь Соц. сети"
+
+  socialNet = softwareSystem "Соц. сеть" {
+    apiGateway = container "API Gateway" {
+      description "Маршрутизация запросов в другие сервисы"
+    }
+
+    userService = container "Сервис пользователей" {
+      description "Управление пользователями и аутентификация"
+    }
+
+    analytService = container "Сервис статистики" {
+      description "Отвечает за подсчет лайков, просмотров, комментариев и сбор другой статистики"
+    }
+
+    postService = container "Сервис постов" {
+      description "Отвечает за посты и комментарии"
+    }
+
+    postgresDb = container "PostgreSQL" {
+      description "Хранение данных пользователей"
+      technology "Database"
+      style {
+        shape cylinder
+        color green
+      }
+    }
+    clickouseDb = container "ClickHouse" {
+      description "Хранение данных постов для аналитики"
+      technology "Database"
+      style {
+        shape cylinder
+        color green
+      }
+    }
+
+    kafka = container "Kafka" {
+      description "Обмен событиями между сервисами"
+      technology "Message Broker"
+      style {
+        shape queue
+        color red
+      }
+    }
+  }
+
+  user -> socialNet.apiGateway "Использует" "HTTPS"
+  socialNet.apiGateway -> socialNet.userService "Регистрация, аутентификация JSON/HTTPS"
+  socialNet.apiGateway -> socialNet.analytService "Запрашивает статистику JSON/HTTPS"
+  socialNet.apiGateway -> socialNet.postService "Отправляет посты и все данных о них (лайки, комментарии, просмотры) JSON/HTTPS"
+
+  socialNet.postService -> socialNet.postgresDb "Хранит посты и комментарии"
+  socialNet.postService -> socialNet.kafka "Публикует данные о постах и комментариях"
+
+  socialNet.userService -> socialNet.postgresDb "Читает/Пишет данные о пользователях SQL"
+  socialNet.userService -> socialNet.kafka "Публикует стат. данные пользователя"
+
+  socialNet.analytService -> socialNet.kafka "Подписывается"
+  socialNet.analytService -> socialNet.clickouseDb "Хранит данные о постах"
+}
+
+views {
+   view index {
+        include *
+    }
+}
