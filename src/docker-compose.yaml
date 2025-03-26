@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  apigateway:
+    build:
+      context: ./Gateway
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - userservice
+    environment:
+      - USER_SERVICE_URL=http://userservice:5001
+
+  userservice:
+    build:
+      context: ./UserService
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://banilacrew:soapass@db:5432/soa
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: banilacrew
+      POSTGRES_PASSWORD: soapass
+      POSTGRES_DB: soa
+    ports:
+      - "5432:5432"
