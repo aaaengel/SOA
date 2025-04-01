@@ -3,6 +3,10 @@ from sqlalchemy import Column, Integer, String, TIMESTAMP, BOOLEAN, ForeignKey, 
 from sqlalchemy.dialects.postgresql import UUID
 from Database.db import Base
 
+class User(Base):
+    __tablename__ = "users"
+    id = Column(UUID(as_uuid=True), primary_key=True)
+
 class Post(Base):
     __tablename__ = "posts"
 
@@ -32,7 +36,7 @@ class PostComment(Base):
     __tablename__ = "post_comments"
 
     comment_id = Column(UUID(as_uuid=True), primary_key=True, index=True)
-    related_post = Column(UUID(as_uuid=True), ForeignKey("post.id"), index=True)
+    related_post = Column(UUID(as_uuid=True), ForeignKey("posts.id"), index=True)
     commenter_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), index=True)
     replied = Column(UUID(as_uuid=True), nullable=True)
     likes_amount = Column(Integer)

@@ -25,24 +25,34 @@ SERVICES = {
     "user": os.getenv("USER_SERVICE_URL", "http://userservice:5001"),
     "post": os.getenv("POST_SERVICE_URL", "http://postapi:8000")
 }
+
 def verify_access_token(token: str):
     try:
-        print(PUBLIC_KEY)
-        payload = jwt.decode(token, PUBLIC_KEY, algorithm=ALGORITHM)
-        return payload
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token')
+        key = PUBLIC_KEY.decode("utf-8") if isinstance(PUBLIC_KEY, bytes) else PUBLIC_KEY
 
-def get_token(request: Request):
-    token = request.cookies.get('token')
-    print(token)
-    if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Token not found')
-    return token
+        payload = jwt.decode(
+            token,
+            key,
+            algorithms=["RS256"],
+            options={"verify_exp": True}
+        )
+        return payload
+
+    except jwt.PyJWTError as e:
+        print("PyJWTError:", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid token: {str(e)}"
+        )
 
     
-async def get_current_user(token: str = Depends(get_token)):
+async def get_current_user(request: Request):
+    token = request.cookies.get('token')
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Token not found')
+    print(token)
     payload = verify_access_token(token)
+
     expire = payload.get('exp')
     expire_time = datetime.fromtimestamp(int(expire), tz=timezone.utc)
     if (not expire) or (expire_time < datetime.now(timezone.utc)):
@@ -63,12 +73,13 @@ async def handle_req(req: Request, path: str, service: str):
     async with httpx.AsyncClient() as client:
         body = await req.body()
         headers = {k: v for k, v in req.headers.items() if k.lower() != "host"}
+        cookies = req.cookies
         if service == 'post':
-            id = await get_current_user()
+            id = await get_current_user(req)
             me_resp = await client.request(
                 method="GET",
                 url=f"{SERVICES['user']}/me",
-                headers=headers
+                cookies=cookies
             )
             if me_resp.status_code != 200:
                 raise HTTPException(status_code=401, detail="Unauthorized")
@@ -76,7 +87,6 @@ async def handle_req(req: Request, path: str, service: str):
             user_data = me_resp.json()
             if str(id) != str(user_data["id"]):
                 raise HTTPException(status_code=403, detail="Wrong user")
-        cookies = req.cookies
         print(cookies)
         proxy_resp = await client.request(
             method=req.method,

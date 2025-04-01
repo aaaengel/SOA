@@ -12,3 +12,4 @@ fastapi
 passlib[bcrypt]
 pydantic[email]
 cryptography
+psycopg2-binary

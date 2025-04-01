@@ -31,7 +31,7 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgresql+asyncpg://banilacrew:soapass@db:5432/soa
+      - DATABASE_URL=postgresql://banilacrew:soapass@db:5432/soa
 
   postapi:
     build:

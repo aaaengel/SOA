@@ -6,3 +6,6 @@ grpcio-tools>=1.54.0
 PyJWT>=2.6.0
 googleapis-common-protos>=1.56.4
 protobuf>=4.21.6,<5.0.0
+passlib[bcrypt]
+cryptography
+pyyaml
