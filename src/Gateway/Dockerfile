@@ -4,7 +4,8 @@ WORKDIR /app
 
 # Копируем список зависимостей и устанавливаем их
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Копируем исходный код сервиса
 COPY . .

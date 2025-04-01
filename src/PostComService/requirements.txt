@@ -1,0 +1,14 @@
+grpcio>=1.54.0
+grpcio-tools>=1.54.0
+SQLAlchemy>=1.4.0
+asyncpg>=0.27.0
+PyJWT>=2.6.0
+passlib>=1.7.4
+googleapis-common-protos>=1.56.4
+protobuf>=4.21.6,<5.0.0
+pydantic
+PyJWT
+fastapi
+passlib[bcrypt]
+pydantic[email]
+cryptography
