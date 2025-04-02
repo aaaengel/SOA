@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package post;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+
+message UUID {
+    string value = 1;
+}
+
+message Post {
+    string name = 1;
+    string desc = 2;
+    google.protobuf.Timestamp date = 3;
+    google.protobuf.Timestamp update_date = 4;
+    bool private = 5;
+    repeated string tags = 6;
+    UUID uuid = 7;
+    UUID uuid_user = 8;
+}
+
+message UpdatePostMsg {
+    UUID uuid = 1;
+    string name = 2;
+    string desc = 3;
+    bool private = 4;
+    repeated string tags = 5;
+}
+
+message PostResponse {
+    int32 code = 1;
+    string message = 2;
+    repeated google.protobuf.Any details = 3;
+}
+// message UserResponse {
+//     int32 code = 1;
+//     string message = 2;
+//     UUID uuid = 3;
+//     repeated google.protobuf.Any details = 4;
+// }
+
+service Posts {
+    rpc CreatePost(Post) returns (PostResponse);
+    rpc DeletePost(UUID) returns (PostResponse);
+    rpc UpdatePost(UpdatePostMsg) returns (PostResponse);
+    rpc GetById(UUID) returns (Post);
+    rpc GetPosts(UUID) returns (stream Post);
+    // rpc CheckAuth(google.protobuf.Empty) returns (UserResponse);
+}

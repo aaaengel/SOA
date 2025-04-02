@@ -9,6 +9,7 @@ services:
       - "5000:5000"
     depends_on:
       - userservice
+      - postservice
     environment:
       - USER_SERVICE_URL=http://userservice:5001
 
@@ -20,6 +21,28 @@ services:
       - "5001:5001"
     environment:
       - DATABASE_URL=postgresql+asyncpg://banilacrew:soapass@db:5432/soa
+
+  postservice:
+    build:
+      context: .
+      dockerfile: PostComService/Dockerfile
+    ports:
+      - "50051:50051"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://banilacrew:soapass@db:5432/soa
+
+  postapi:
+    build:
+      context: .
+      dockerfile: PostApi/Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postservice
+    environment:
+      - GRPC_POST_SERVICE_URL=postservice:50051
 
   db:
     image: postgres:13
