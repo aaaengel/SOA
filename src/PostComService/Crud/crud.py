@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
-from Schemas.schema import Post
+from Schemas.schema import Post, PostComment
 import uuid
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -68,3 +69,39 @@ def unlike_post_sync(db: Session, id: uuid.UUID):
     db.commit()
     db.refresh(post)
     return post
+
+def view_post_sync(db: Session, post_id: uuid.UUID):
+    post = get_post_by_id_sync(db, post_id)
+    post.views_amount += 1
+    db.commit()
+    db.refresh(post)
+    return post
+
+def like_post_sync(db: Session, post_id: uuid.UUID):
+    post = get_post_by_id_sync(db, post_id)
+    post.likes_amount += 1
+    db.commit()
+    db.refresh(post)
+    return post
+
+def comment_post_sync(db: Session, post_id: uuid.UUID, user_id: uuid.UUID, content: str, replied: uuid.UUID = None):
+    comment = PostComment(
+        comment_id=uuid.uuid4(),
+        related_post=post_id,
+        commenter_id=user_id,
+        content=content,
+        replied=replied,
+        posted_at=datetime.now()
+    )
+    db.add(comment)
+    db.commit()
+    db.refresh(comment)
+    return comment
+
+def get_comments_paginated_sync(db: Session, post_id: uuid.UUID, offset: int, limit: int):
+    return db.query(PostComment)\
+        .filter(PostComment.related_post == post_id)\
+        .order_by(PostComment.posted_at)\
+        .offset(offset)\
+        .limit(limit)\
+        .all()

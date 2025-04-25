@@ -24,23 +24,38 @@ _sym_db = _symbol_database.Default()
 
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 from google.protobuf import any_pb2 as google_dot_protobuf_dot_any__pb2
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\npost.proto\x12\x04post\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19google/protobuf/any.proto\"\x15\n\x04UUID\x12\r\n\x05value\x18\x01 \x01(\t\"\xd5\x01\n\x04Post\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x65sc\x18\x02 \x01(\t\x12(\n\x04\x64\x61te\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0bupdate_date\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0f\n\x07private\x18\x05 \x01(\x08\x12\x0c\n\x04tags\x18\x06 \x03(\t\x12\x18\n\x04uuid\x18\x07 \x01(\x0b\x32\n.post.UUID\x12\x1d\n\tuuid_user\x18\x08 \x01(\x0b\x32\n.post.UUID\"d\n\rUpdatePostMsg\x12\x18\n\x04uuid\x18\x01 \x01(\x0b\x32\n.post.UUID\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0c\n\x04\x64\x65sc\x18\x03 \x01(\t\x12\x0f\n\x07private\x18\x04 \x01(\x08\x12\x0c\n\x04tags\x18\x05 \x03(\t\"T\n\x0cPostResponse\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0f\n\x07message\x18\x02 \x01(\t\x12%\n\x07\x64\x65tails\x18\x03 \x03(\x0b\x32\x14.google.protobuf.Any2\xe3\x01\n\x05Posts\x12,\n\nCreatePost\x12\n.post.Post\x1a\x12.post.PostResponse\x12,\n\nDeletePost\x12\n.post.UUID\x1a\x12.post.PostResponse\x12\x35\n\nUpdatePost\x12\x13.post.UpdatePostMsg\x1a\x12.post.PostResponse\x12!\n\x07GetById\x12\n.post.UUID\x1a\n.post.Post\x12$\n\x08GetPosts\x12\n.post.UUID\x1a\n.post.Post0\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\npost.proto\x12\x04post\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19google/protobuf/any.proto\x1a\x1bgoogle/protobuf/empty.proto\"\x15\n\x04UUID\x12\r\n\x05value\x18\x01 \x01(\t\"\xd5\x01\n\x04Post\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x65sc\x18\x02 \x01(\t\x12(\n\x04\x64\x61te\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0bupdate_date\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0f\n\x07private\x18\x05 \x01(\x08\x12\x0c\n\x04tags\x18\x06 \x03(\t\x12\x18\n\x04uuid\x18\x07 \x01(\x0b\x32\n.post.UUID\x12\x1d\n\tuuid_user\x18\x08 \x01(\x0b\x32\n.post.UUID\"d\n\rUpdatePostMsg\x12\x18\n\x04uuid\x18\x01 \x01(\x0b\x32\n.post.UUID\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0c\n\x04\x64\x65sc\x18\x03 \x01(\t\x12\x0f\n\x07private\x18\x04 \x01(\x08\x12\x0c\n\x04tags\x18\x05 \x03(\t\"T\n\x0cPostResponse\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0f\n\x07message\x18\x02 \x01(\t\x12%\n\x07\x64\x65tails\x18\x03 \x03(\x0b\x32\x14.google.protobuf.Any\"O\n\x0fViewPostRequest\x12\x1d\n\tpost_uuid\x18\x01 \x01(\x0b\x32\n.post.UUID\x12\x1d\n\tuser_uuid\x18\x02 \x01(\x0b\x32\n.post.UUID\"O\n\x0fLikePostRequest\x12\x1d\n\tpost_uuid\x18\x01 \x01(\x0b\x32\n.post.UUID\x12\x1d\n\tuser_uuid\x18\x02 \x01(\x0b\x32\n.post.UUID\"\x80\x01\n\x12\x43ommentPostRequest\x12\x1d\n\tpost_uuid\x18\x01 \x01(\x0b\x32\n.post.UUID\x12\x1d\n\tuser_uuid\x18\x02 \x01(\x0b\x32\n.post.UUID\x12\x0f\n\x07\x63ontent\x18\x03 \x01(\t\x12\x1b\n\x07replied\x18\x04 \x01(\x0b\x32\n.post.UUID\"O\n\x12GetCommentsRequest\x12\x1d\n\tpost_uuid\x18\x01 \x01(\x0b\x32\n.post.UUID\x12\x0c\n\x04page\x18\x02 \x01(\x05\x12\x0c\n\x04size\x18\x03 \x01(\x05\"\xa8\x01\n\x07\x43omment\x12\x1e\n\ncomment_id\x18\x01 \x01(\x0b\x32\n.post.UUID\x12 \n\x0c\x63ommenter_id\x18\x02 \x01(\x0b\x32\n.post.UUID\x12\x0f\n\x07\x63ontent\x18\x03 \x01(\t\x12-\n\tposted_at\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x1b\n\x07replied\x18\x05 \x01(\x0b\x32\n.post.UUID\"6\n\x13GetCommentsResponse\x12\x1f\n\x08\x63omments\x18\x01 \x03(\x0b\x32\r.post.Comment\"1\n\x0f\x43ommentResponse\x12\x1e\n\ncomment_id\x18\x01 \x01(\x0b\x32\n.post.UUID2\xdd\x03\n\x05Posts\x12,\n\nCreatePost\x12\n.post.Post\x1a\x12.post.PostResponse\x12,\n\nDeletePost\x12\n.post.UUID\x1a\x12.post.PostResponse\x12\x35\n\nUpdatePost\x12\x13.post.UpdatePostMsg\x1a\x12.post.PostResponse\x12!\n\x07GetById\x12\n.post.UUID\x1a\n.post.Post\x12$\n\x08GetPosts\x12\n.post.UUID\x1a\n.post.Post0\x01\x12\x39\n\x08ViewPost\x12\x15.post.ViewPostRequest\x1a\x16.google.protobuf.Empty\x12\x39\n\x08LikePost\x12\x15.post.LikePostRequest\x1a\x16.google.protobuf.Empty\x12>\n\x0b\x43ommentPost\x12\x18.post.CommentPostRequest\x1a\x15.post.CommentResponse\x12\x42\n\x0bGetComments\x12\x18.post.GetCommentsRequest\x1a\x19.post.GetCommentsResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'post_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_UUID']._serialized_start=80
-  _globals['_UUID']._serialized_end=101
-  _globals['_POST']._serialized_start=104
-  _globals['_POST']._serialized_end=317
-  _globals['_UPDATEPOSTMSG']._serialized_start=319
-  _globals['_UPDATEPOSTMSG']._serialized_end=419
-  _globals['_POSTRESPONSE']._serialized_start=421
-  _globals['_POSTRESPONSE']._serialized_end=505
-  _globals['_POSTS']._serialized_start=508
-  _globals['_POSTS']._serialized_end=735
+  _globals['_UUID']._serialized_start=109
+  _globals['_UUID']._serialized_end=130
+  _globals['_POST']._serialized_start=133
+  _globals['_POST']._serialized_end=346
+  _globals['_UPDATEPOSTMSG']._serialized_start=348
+  _globals['_UPDATEPOSTMSG']._serialized_end=448
+  _globals['_POSTRESPONSE']._serialized_start=450
+  _globals['_POSTRESPONSE']._serialized_end=534
+  _globals['_VIEWPOSTREQUEST']._serialized_start=536
+  _globals['_VIEWPOSTREQUEST']._serialized_end=615
+  _globals['_LIKEPOSTREQUEST']._serialized_start=617
+  _globals['_LIKEPOSTREQUEST']._serialized_end=696
+  _globals['_COMMENTPOSTREQUEST']._serialized_start=699
+  _globals['_COMMENTPOSTREQUEST']._serialized_end=827
+  _globals['_GETCOMMENTSREQUEST']._serialized_start=829
+  _globals['_GETCOMMENTSREQUEST']._serialized_end=908
+  _globals['_COMMENT']._serialized_start=911
+  _globals['_COMMENT']._serialized_end=1079
+  _globals['_GETCOMMENTSRESPONSE']._serialized_start=1081
+  _globals['_GETCOMMENTSRESPONSE']._serialized_end=1135
+  _globals['_COMMENTRESPONSE']._serialized_start=1137
+  _globals['_COMMENTRESPONSE']._serialized_end=1186
+  _globals['_POSTS']._serialized_start=1189
+  _globals['_POSTS']._serialized_end=1666
 # @@protoc_insertion_point(module_scope)

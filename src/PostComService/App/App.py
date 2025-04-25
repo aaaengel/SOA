@@ -1,19 +1,28 @@
 import grpc
 from concurrent import futures
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from google.protobuf.timestamp_pb2 import Timestamp
+from google.protobuf.empty_pb2 import Empty
 
 import post_pb2_grpc as post_pb2_grpc
 import post_pb2
-from Schemas.schema import Base, Post, User, PostComment, PostPhoto
+from Schemas.schema import Base, Post, PostComment, PostPhoto
 from Database.db import SessionLocal, engine
 import Crud.crud as crud
+import os, json
+from kafka import KafkaProducer
+
+producer = KafkaProducer(
+    bootstrap_servers=os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'kafka:9092'),
+    value_serializer=lambda v: json.dumps(v, default=str).encode()
+)
 
 def datetime_to_timestamp(dt: datetime) -> Timestamp:
     ts = Timestamp()
     ts.FromDatetime(dt)
     return ts
+
 
 def post_to_proto(post_model: Post):
     proto_post = post_pb2.Post(
@@ -52,7 +61,6 @@ class PostService(post_pb2_grpc.PostsServicer):
         except Exception as e:
             import traceback
             traceback.print_exc()
-            print("WTF ERR")
             context.abort(grpc.StatusCode.INTERNAL, str(e))
 
     def GetPosts(self, request, context):
@@ -93,6 +101,75 @@ class PostService(post_pb2_grpc.PostsServicer):
             return post_pb2.PostResponse(code=200, message="Deleted")
         except Exception as e:
             context.abort(grpc.StatusCode.INTERNAL, str(e))
+
+    def ViewPost(self, request, context):
+        post_id = uuid.UUID(request.post_uuid.value)
+        user_id = uuid.UUID(request.user_uuid.value)
+        with SessionLocal() as db:
+            crud.view_post_sync(db, post_id)
+        event = {
+            'client_id': str(user_id),
+            'entity': 'post',
+            'entity_id': str(post_id),
+            'timestamp':  datetime.now(timezone.utc)
+        }
+        producer.send('post-views', event)
+        producer.flush()
+        return Empty()
+
+    def LikePost(self, request, context):
+        post_id = uuid.UUID(request.post_uuid.value)
+        user_id = uuid.UUID(request.user_uuid.value)
+        with SessionLocal() as db:
+            crud.like_post_sync(db, post_id)
+        event = {
+            'client_id': str(user_id),
+            'entity': 'post',
+            'entity_id': str(post_id),
+            'timestamp':  datetime.now(timezone.utc)
+        }
+        producer.send('post-likes', event)
+        producer.flush()
+        return Empty()
+
+    def CommentPost(self, request, context):
+        post_id = uuid.UUID(request.post_uuid.value)
+        user_id = uuid.UUID(request.user_uuid.value)
+        with SessionLocal() as db:
+            comment = crud.comment_post_sync(
+                db, post_id, user_id, request.content,
+                uuid.UUID(request.replied.value) if request.replied.value else None
+            )
+        event = {
+            'client_id': str(user_id),
+            'entity': 'post',
+            'entity_id': str(post_id),
+            'comment_id': str(comment.comment_id),
+            'timestamp':  datetime.now(timezone.utc)
+        }
+        producer.send('post-comments', event)
+        producer.flush()
+        return post_pb2.CommentResponse(comment_id=post_pb2.UUID(value=str(comment.comment_id)))
+
+    def GetComments(self, request, context):
+        post_id = uuid.UUID(request.post_uuid.value)
+        page = request.page
+        size = request.size
+        offset = (page - 1) * size
+        with SessionLocal() as db:
+            comments = crud.get_comments_paginated_sync(db, post_id, offset, size)
+        response = post_pb2.GetCommentsResponse()
+        for c in comments:
+            msg = post_pb2.Comment(
+                comment_id=post_pb2.UUID(value=str(c.comment_id)),
+                commenter_id=post_pb2.UUID(value=str(c.commenter_id)),
+                content=c.content,
+            )
+            msg.posted_at.CopyFrom(datetime_to_timestamp(c.posted_at))
+            if c.replied:
+                msg.replied.CopyFrom(post_pb2.UUID(value=str(c.replied)))
+            response.comments.append(msg)
+        return response
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

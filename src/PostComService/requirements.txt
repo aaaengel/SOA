@@ -13,3 +13,4 @@ passlib[bcrypt]
 pydantic[email]
 cryptography
 psycopg2-binary
+kafka-python==2.0.2

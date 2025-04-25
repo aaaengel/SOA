@@ -13,6 +13,14 @@ from contextlib import asynccontextmanager
 import logging
 from fastapi.openapi.utils import get_openapi
 import yaml
+import os, json
+from kafka import KafkaProducer
+from datetime import datetime, timezone
+
+producer = KafkaProducer(
+    bootstrap_servers=os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'kafka:9092'),
+    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -112,8 +120,15 @@ async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
             detail='Already exists'
         )
     us_dict = user.model_dump()
-    await cr.create_user(db, us_dict)
+    us = await cr.create_user(db, us_dict)
+    event = {
+    'client_id': str(us.id),
+    'registration_date': datetime.now(timezone.utc).isoformat()
+    }
+    producer.send('client-registrations', event)
+    producer.flush()
     return {'message': 'Register successfully!'}
+
 
 @app.post("/login", response_model=Token)
 async def login(response: Response, user: UserAuth, db: AsyncSession = Depends(get_db)):
@@ -126,10 +141,14 @@ async def login(response: Response, user: UserAuth, db: AsyncSession = Depends(g
 @app.get("/me")
 async def whoami(user: User = Depends(get_current_user)):
     return user
-@app.get("/wait")
-async def whoami(db: AsyncSession = Depends(get_db)):
-    await asyncio.sleep(10)
-    await db.commit()
+
+@app.get("/hello")
+async def hello():
+    return {"status": "ok"}
+# @app.get("/wait")
+# async def whoami(db: AsyncSession = Depends(get_db)):
+#     await asyncio.sleep(10)
+#     await db.commit()
 @app.put("/me/update")
 async def whoami(new_data: UserUpdate, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     user.name = new_data.first_name if new_data.first_name else user.first_name
@@ -141,15 +160,15 @@ async def whoami(new_data: UserUpdate, user: User = Depends(get_current_user), d
     await db.commit()
     await db.refresh(user)
     return user
-@app.get("/openapi.yaml", include_in_schema=False)
-def get_openapi_yaml():
-    openapi_schema = get_openapi(
-        title = "UserService",
-        version="1.0.0",
-        routes=app.routes
-    )
-    yaml_schema = yaml.dump(openapi_schema, sort_keys=False, allow_unicode=True)
-    return Response(content=yaml_schema, media_type="application/x-yaml")
+# @app.get("/openapi.yaml", include_in_schema=False)
+# def get_openapi_yaml():
+#     openapi_schema = get_openapi(
+#         title = "UserService",
+#         version="1.0.0",
+#         routes=app.routes
+#     )
+#     yaml_schema = yaml.dump(openapi_schema, sort_keys=False, allow_unicode=True)
+#     return Response(content=yaml_schema, media_type="application/x-yaml")
 
 
 # @app.get("/user/{username}")

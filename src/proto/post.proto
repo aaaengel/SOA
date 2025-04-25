@@ -4,10 +4,9 @@ package post;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
 
-message UUID {
-    string value = 1;
-}
+message UUID {string value = 1;}
 
 message Post {
     string name = 1;
@@ -28,17 +27,15 @@ message UpdatePostMsg {
     repeated string tags = 5;
 }
 
-message PostResponse {
-    int32 code = 1;
-    string message = 2;
-    repeated google.protobuf.Any details = 3;
-}
-// message UserResponse {
-//     int32 code = 1;
-//     string message = 2;
-//     UUID uuid = 3;
-//     repeated google.protobuf.Any details = 4;
-// }
+message PostResponse {int32 code = 1;string message = 2;repeated google.protobuf.Any details = 3;}
+
+message ViewPostRequest {UUID post_uuid = 1; UUID user_uuid = 2; }
+message LikePostRequest { UUID post_uuid = 1; UUID user_uuid = 2; }
+message CommentPostRequest { UUID post_uuid = 1; UUID user_uuid = 2; string content = 3; UUID replied = 4; }
+message GetCommentsRequest { UUID post_uuid = 1; int32 page = 2; int32 size = 3; }
+message Comment { UUID comment_id = 1; UUID commenter_id = 2; string content = 3; google.protobuf.Timestamp posted_at = 4; UUID replied = 5; }
+message GetCommentsResponse { repeated Comment comments = 1; }
+message CommentResponse { UUID comment_id = 1; }
 
 service Posts {
     rpc CreatePost(Post) returns (PostResponse);
@@ -46,5 +43,8 @@ service Posts {
     rpc UpdatePost(UpdatePostMsg) returns (PostResponse);
     rpc GetById(UUID) returns (Post);
     rpc GetPosts(UUID) returns (stream Post);
-    // rpc CheckAuth(google.protobuf.Empty) returns (UserResponse);
+    rpc ViewPost(ViewPostRequest) returns (google.protobuf.Empty);
+    rpc LikePost(LikePostRequest) returns (google.protobuf.Empty);
+    rpc CommentPost(CommentPostRequest) returns (CommentResponse);
+    rpc GetComments(GetCommentsRequest) returns (GetCommentsResponse);
 }

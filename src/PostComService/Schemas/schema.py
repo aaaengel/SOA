@@ -3,10 +3,23 @@ from sqlalchemy import Column, Integer, String, TIMESTAMP, BOOLEAN, ForeignKey, 
 from sqlalchemy.dialects.postgresql import UUID
 from Database.db import Base
 
+
 class User(Base):
     __tablename__ = "users"
-    id = Column(UUID(as_uuid=True), primary_key=True)
 
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True)
+    login = Column(String(20), nullable=False)
+    name = Column(String(20), nullable=True)
+    second_name = Column(String(20), nullable=True)
+    password = Column(String(100), nullable=False)
+    email = Column(String(50), unique=True, index=True, nullable=False)
+    phone = Column(String(20), unique=True, index=True)
+    created_at = Column(TIMESTAMP, default=datetime.now())
+    updated_at = Column(TIMESTAMP, default=datetime.now(), onupdate=datetime.now())
+    online_at = Column(TIMESTAMP, default=datetime.now(), onupdate=datetime.now())
+    birthday = Column(TIMESTAMP)
+    status = Column(BOOLEAN, default=False, onupdate=True)
+    
 class Post(Base):
     __tablename__ = "posts"
 
@@ -19,6 +32,7 @@ class Post(Base):
     private = Column(BOOLEAN, default=False, onupdate=True)
     tags = Column(ARRAY(String))
     likes_amount = Column(Integer, default=0)
+    views_amount = Column(Integer, default=0)
 
 class PostPhoto(Base):
     __tablename__ = "post_photo"
@@ -41,3 +55,4 @@ class PostComment(Base):
     replied = Column(UUID(as_uuid=True), nullable=True)
     likes_amount = Column(Integer)
     posted_at = Column(TIMESTAMP, default=datetime.now())
+    content = Column(String(500), nullable=True)

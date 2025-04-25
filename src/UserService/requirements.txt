@@ -7,3 +7,4 @@ PyJWT
 passlib[bcrypt]
 pydantic[email]
 cryptography
+kafka-python==2.0.2

@@ -70,7 +70,7 @@ def get_user_id(req: Request) -> str:
         raise HTTPException(status_code=401, detail="Token not found in cookies")
     return decode_token(token)
 
-GRPC_POST_SERVICE = "localhost:50051"
+GRPC_POST_SERVICE = "postservice:50051"
 channel = grpc.insecure_channel(GRPC_POST_SERVICE)
 stub = post_pb2_grpc.PostsStub(channel)
 
@@ -140,6 +140,69 @@ def delete_post(post_id: str):
         return MessageToDict(response)
     except grpc.RpcError as e:
         raise HTTPException(status_code=e.code().value[0], detail=e.details())
+
+@app.post("/posts/{post_id}/view")
+async def view_post(post_id: str, request: Request):
+    user_id = get_user_id(request)
+    view_req = post_pb2.ViewPostRequest(
+        post_uuid=post_pb2.UUID(value=post_id),
+        user_uuid=post_pb2.UUID(value=user_id),
+    )
+    try:
+        stub.ViewPost(view_req)
+        return {"status": "ok"}
+    except grpc.RpcError as e:
+        raise HTTPException(status_code=e.code().value[0], detail=e.details())
+
+
+@app.post("/posts/{post_id}/like")
+async def like_post(post_id: str, request: Request):
+    user_id = get_user_id(request)
+    like_req = post_pb2.LikePostRequest(
+        post_uuid=post_pb2.UUID(value=post_id),
+        user_uuid=post_pb2.UUID(value=user_id),
+    )
+    try:
+        stub.LikePost(like_req)
+        return {"status": "ok"}
+    except grpc.RpcError as e:
+        raise HTTPException(status_code=e.code().value[0], detail=e.details())
+
+
+@app.post("/posts/{post_id}/comment")
+async def comment_post(post_id: str, request: Request):
+    user_id = get_user_id(request)
+    body = await request.json()
+
+    comment_req = post_pb2.CommentPostRequest(
+        post_uuid=post_pb2.UUID(value=post_id),
+        user_uuid=post_pb2.UUID(value=user_id),
+        content=body.get("content", ""),
+    )
+    replied = body.get("replied")
+    if replied:
+        comment_req.replied.CopyFrom(post_pb2.UUID(value=replied))
+
+    try:
+        resp = stub.CommentPost(comment_req)
+        return MessageToDict(resp)   # { "commentId": { "value": "..." } }
+    except grpc.RpcError as e:
+        raise HTTPException(status_code=e.code().value[0], detail=e.details())
+
+
+@app.get("/posts/{post_id}/comments")
+def get_post_comments(post_id: str, page: int = 1, size: int = 10):
+    grpc_req = post_pb2.GetCommentsRequest(
+        post_uuid=post_pb2.UUID(value=post_id),
+        page=page,
+        size=size,
+    )
+    try:
+        resp = stub.GetComments(grpc_req)
+        return MessageToDict(resp)   # {"comments": [ {...}, {...} ]}
+    except grpc.RpcError as e:
+        raise HTTPException(status_code=e.code().value[0], detail=e.details())
+    
 
 @app.get("/openapi.yaml", include_in_schema=False)
 def get_openapi_yaml():
