@@ -7,8 +7,6 @@ import pytest_asyncio
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import event
-
-# Импортируем компоненты из твоего проекта (проверь корректность путей)
 from Database.database import engine, SessionLocal
 from Crud import crud as cr
 from App.UserService import (
